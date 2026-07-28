@@ -19,7 +19,8 @@ function genId() {
 
 // HTTP server to serve static files
 const server = http.createServer((req, res) => {
-  const filePath = req.url === '/' ? '/index.html' : req.url;
+  const urlPath = req.url.split('?')[0];
+  const filePath = urlPath === '/' ? '/index.html' : urlPath;
   const fullPath = path.join(__dirname, filePath);
 
   const mime = {
@@ -96,6 +97,8 @@ wss.on('connection', (ws) => {
         room.players.set(playerId, { ws, name: msg.name || 'Host', avatar: msg.avatar || '🦊' });
         room.scores[playerId] = 0;
         send(ws, { type: 'room_created', roomCode, playerId, isHost: true });
+        // Also send initial player list
+        send(ws, { type: 'player_list', players: getPlayerList(room) });
         break;
       }
 
