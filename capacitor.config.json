@@ -1,0 +1,9 @@
+{
+  "appId": "com.partygames.app",
+  "appName": "Party Games",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}
