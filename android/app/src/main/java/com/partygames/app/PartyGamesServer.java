@@ -257,6 +257,10 @@ public class PartyGamesServer extends NanoWSD {
         protected void onException(IOException exception) {
             Log.e(TAG, "WS error", exception);
         }
+
+        private void sendToMe(Map<String, Object> msg) {
+            try { send(json(msg)); } catch (IOException e) { Log.e(TAG, "sendToMe failed", e); }
+        }
     }
 
     // ── Helpers ──
@@ -274,10 +278,7 @@ public class PartyGamesServer extends NanoWSD {
         try { return Integer.parseInt(String.valueOf(v)); } catch (Exception e) { return 0; }
     }
 
-    private void sendToMe(Map<String, Object> msg) {
-        try { send(json(msg)); } catch (IOException e) { Log.e(TAG, "sendToMe failed", e); }
-    }
-
+    // Only valid when called from within GameSocket
     private void sendToOne(WebSocket ws, Map<String, Object> msg) {
         try { ws.send(json(msg)); } catch (IOException e) { Log.e(TAG, "sendToOne failed", e); }
     }
