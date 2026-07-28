@@ -2,728 +2,647 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Party Games</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f1a;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-#app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
-.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:20px;text-align:center}
+#app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:16px;text-align:center}
 .screen.active{display:flex}
-h1{font-size:2em;margin-bottom:8px;background:linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-h2{font-size:1.4em;margin-bottom:12px;color:#aaa}
-.subtitle{color:#666;margin-bottom:24px;font-size:0.9em}
-.btn{padding:14px 32px;border:none;border-radius:12px;font-size:1.1em;font-weight:600;cursor:pointer;margin:6px;transition:transform .1s,opacity .1s;background:#1e1e2e;color:#fff;border:1px solid #333}
-.btn:active{transform:scale(.96);opacity:.8}
+h1{font-size:1.8em;margin-bottom:6px;background:linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
+.btn{padding:12px 24px;border:none;border-radius:12px;font-size:1em;font-weight:600;cursor:pointer;margin:4px;transition:transform .1s;background:#1e1e2e;color:#fff;border:1px solid #333}
+.btn:active{transform:scale(.96)}
 .btn.primary{background:linear-gradient(135deg,#6c5ce7,#a29bfe);border:none}
 .btn.danger{background:linear-gradient(135deg,#e74c3c,#c0392b);border:none}
 .btn.success{background:linear-gradient(135deg,#27ae60,#2ecc71);border:none}
-.btn.warn{background:linear-gradient(135deg,#f39c12,#e67e22);border:none}
-.btn.large{padding:18px 48px;font-size:1.3em}
-.btn.full{width:80%;max-width:320px}
 .btn:disabled{opacity:.4;pointer-events:none}
-.input{border:2px solid #333;border-radius:12px;padding:12px 16px;font-size:1.1em;background:#1a1a2e;color:#fff;text-align:center;width:200px;margin:8px 0}
+.input{border:2px solid #333;border-radius:12px;padding:10px 14px;font-size:1em;background:#1a1a2e;color:#fff;text-align:center;width:180px;margin:6px 0}
 .input:focus{outline:none;border-color:#6c5ce7}
-.room-code{font-size:3em;font-weight:900;letter-spacing:8px;color:#ffd93d;margin:12px 0}
-.qr-box{background:#fff;padding:12px;border-radius:12px;margin:16px 0}
-.qr-box canvas{display:block}
-.player-list{width:100%;max-width:300px;margin:12px 0;max-height:200px;overflow-y:auto}
-.player-row{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:4px 0;background:#1a1a2e;border-radius:10px;font-size:1em}
-.player-avatar{font-size:1.5em}
-.player-name{flex:1;text-align:left}
-.host-badge{font-size:.7em;background:#6c5ce7;padding:2px 8px;border-radius:8px}
-.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px;margin:12px 0}
-.game-card{padding:16px 10px;border-radius:12px;background:#1a1a2e;border:1px solid #333;cursor:pointer;text-align:center;transition:.15s}
+
+/* Game grid on home */
+.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:360px;margin:8px 0}
+.game-card{padding:14px 8px;border-radius:12px;background:#1a1a2e;border:1px solid #333;cursor:pointer;text-align:center;transition:.15s}
 .game-card:active{background:#2a2a4e;transform:scale(.97)}
-.game-card .emoji{font-size:2em;display:block;margin-bottom:4px}
-.game-card .name{font-size:.85em;color:#ccc}
-.scoreboard{width:100%;max-width:320px}
-.score-row{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;background:#1a1a2e;border-radius:10px}
-.score-rank{font-weight:900;font-size:1.2em;width:30px}
-.score-name{flex:1;text-align:left}
-.score-val{font-weight:700;color:#ffd93d}
-/* Game canvas overlay */
+.game-card .emoji{font-size:1.8em;display:block;margin-bottom:2px}
+.game-card .name{font-size:.8em;color:#ccc}
+
+/* Score display */
+.high-score{font-size:.7em;color:#666;margin-top:2px}
+
+/* Multiplayer bar */
+.mp-bar{display:flex;gap:8px;margin:10px 0;width:100%;max-width:360px}
+.mp-bar .btn{flex:1;font-size:.85em;padding:10px}
+
+/* Game screen */
 .game-area{position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f1a;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center}
 .game-area.active{display:flex}
-.game-hud{position:absolute;top:16px;left:0;right:0;display:flex;justify-content:space-between;padding:0 20px;font-size:.9em;color:#666;z-index:10}
-.game-title{position:absolute;top:50px;left:0;right:0;text-align:center;font-size:1.1em;color:#aaa;z-index:10}
-.tap-target{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#ff6b6b,#c0392b);display:flex;align-items:center;justify-content:center;font-size:2em;cursor:pointer;transition:transform .1s;box-shadow:0 0 40px rgba(255,107,107,.4)}
-.tap-target:active{transform:scale(1.1)}
-.tap-target.green{background:radial-gradient(circle,#2ecc71,#27ae60);box-shadow:0 0 40px rgba(46,204,113,.4)}
-.drop-area{position:relative;width:90%;max-width:380px;height:70%;overflow:hidden;border:2px solid #333;border-radius:16px;background:#0a0a15}
-.ball{position:absolute;width:36px;height:36px;border-radius:50%;top:-40px;animation-fill-mode:forwards;pointer-events:auto}
-.color-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:90%;max-width:340px}
-.color-btn{aspect-ratio:1;border-radius:16px;border:3px solid transparent;font-size:2em}
-.color-btn.wrong{animation:shake .3s}
-.color-btn.correct{border-color:#fff;box-shadow:0 0 30px currentColor}
-.split-area{display:flex;width:100%;height:100%}
-.split-left,.split-right{flex:1;display:flex;align-items:center;justify-content:center;font-size:2em;position:relative}
-.split-left{background:#1a1a3e;border-right:2px solid #333}
-.split-right{background:#1e1a2e}
-.flash-screen{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:background .05s}
-.flash-screen.flash{background:#fff}
-.typing-area{width:90%;max-width:380px;text-align:center}
-.typing-target{font-size:2em;margin-bottom:16px;color:#ffd93d;min-height:60px}
-.typing-input{width:100%;padding:16px;font-size:1.2em;border-radius:12px;border:2px solid #333;background:#1a1a2e;color:#fff;text-align:center}
-.typing-input:focus{outline:none;border-color:#6c5ce7}
-.last-screen{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:background .3s}
-.last-wait{font-size:3em;color:#ff6b6b}
-.last-go{font-size:3em;color:#2ecc71}
-.pattern-grid{display:grid;grid-template-columns:repeat(3,80px);grid-template-rows:repeat(3,80px);gap:6px}
-.pattern-dot{width:80px;height:80px;border-radius:50%;background:#1e1e2e;border:2px solid #444;transition:background .2s;display:flex;align-items:center;justify-content:center;font-size:1.5em}
-.pattern-dot.lit{background:#6c5ce7;border-color:#a29bfe;box-shadow:0 0 20px rgba(108,92,231,.5)}
-.countdown{font-size:6em;font-weight:900;animation:pulse .5s ease-in-out}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.game-hud{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:0 16px;font-size:.8em;color:#666;z-index:10}
+.game-close{position:absolute;top:10px;right:14px;z-index:20;background:none;border:none;color:#fff;font-size:1.5em;cursor:pointer}
+.round-result{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:2em;font-weight:900;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s}
+.round-result.show{opacity:1}
+.round-result.correct{color:#2ecc71}
+.round-result.wrong{color:#e74c3c}
+
+/* Pattern Lock */
+.pl-grid{display:grid;grid-template-columns:repeat(3,70px);grid-template-rows:repeat(3,70px);gap:5px}
+.pl-dot{width:70px;height:70px;border-radius:50%;background:#1e1e2e;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:1.2em;transition:background .15s}
+.pl-dot.lit{background:#6c5ce7;border-color:#a29bfe;box-shadow:0 0 20px rgba(108,92,231,.5)}
+.pl-dot.tapped{background:#2ecc71;border-color:#27ae60}
+
+/* Catch Drop */
+.drop-area{position:relative;width:90%;max-width:380px;height:65%;overflow:hidden;border:2px solid #333;border-radius:16px;background:#0a0a15}
+.ball{position:absolute;width:38px;height:38px;border-radius:50%;top:-42px;pointer-events:auto;cursor:pointer}
+@keyframes cdFall{to{top:calc(100% + 42px)}}
+
+/* Whack Color */
+.wc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:90%;max-width:320px}
+.wc-btn{aspect-ratio:1;border-radius:16px;border:3px solid transparent;font-size:1.8em;cursor:pointer}
+.wc-btn.wrong{animation:shake .3s}
+.wc-btn.correct{border-color:#fff;box-shadow:0 0 30px currentColor}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* Double Tap */
+.dt-area{display:flex;width:100%;height:100%}
+.dt-side{flex:1;display:flex;align-items:center;justify-content:center;font-size:2em;transition:background .2s}
+.dt-left{background:#1a1a3e;border-right:2px solid #333}
+.dt-right{background:#1e1a2e}
+
+/* Flash Count */
+.fc-screen{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:background .05s}
+.fc-screen.flash{background:#fff}
+
+/* Typing Under Fire */
+.tf-area{width:90%;max-width:380px;text-align:center}
+.tf-target{font-size:1.6em;margin-bottom:12px;color:#ffd93d;min-height:50px}
+.tf-input{width:100%;padding:14px;font-size:1.1em;border-radius:12px;border:2px solid #333;background:#1a1a2e;color:#fff;text-align:center}
+.tf-input:focus{outline:none;border-color:#6c5ce7}
+
+/* Last to Tap */
+.lt-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:background .3s;cursor:pointer}
+
+/* Countdown */
+.countdown{font-size:5em;font-weight:900;animation:pulse .5s ease-in-out}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 </style>
 </head>
 <body>
 <div id="app">
 
-<!-- HOME SCREEN -->
+<!-- HOME — game menu + multiplayer bar -->
 <div id="home" class="screen active">
   <h1>🎉 Party Games</h1>
-  <p class="subtitle">Multiplayer mini-games on your phone</p>
-  <input class="input" id="serverUrl" type="text" placeholder="Server URL (e.g. 192.168.1.5:3456)" style="margin-bottom:16px">
-  <button class="btn primary large full" onclick="createRoom()">🎮 Host a Party</button>
-  <button class="btn large full" onclick="showJoin()">🔗 Join a Party</button>
-  <p id="serverHint" style="color:#555;font-size:.7em;margin-top:16px">Run <code>node server.js</code> on a computer first</p>
+  <div class="game-grid" id="gameGrid"></div>
+  <div class="mp-bar">
+    <button class="btn" onclick="showHost()">📡 Host</button>
+    <button class="btn" onclick="showJoin()">🔗 Join</button>
+  </div>
 </div>
 
-<!-- JOIN SCREEN -->
-<div id="join" class="screen">
-  <h2>Join a Party</h2>
-  <input class="input" id="roomInput" type="text" maxlength="6" placeholder="Room Code" inputmode="numeric" pattern="[0-9]*">
-  <input class="input" id="nameInput" type="text" maxlength="16" placeholder="Your Name">
-  <button class="btn primary full" onclick="joinRoom()">Join</button>
+<!-- HOST screen -->
+<div id="hostScreen" class="screen">
+  <h2>📡 Host a Party</h2>
+  <p style="color:#888;margin-bottom:12px;font-size:.85em">Run <code>node server.js</code> on a computer first,<br>then enter its IP below</p>
+  <input class="input" id="hostServerUrl" type="text" placeholder="Server IP (e.g. 192.168.1.5:3456)">
+  <button class="btn primary" onclick="startHost()">Start Hosting</button>
+  <button class="btn" onclick="goScreen('home')">Back</button>
+</div>
+
+<!-- JOIN screen -->
+<div id="joinScreen" class="screen">
+  <h2>🔗 Join a Party</h2>
+  <input class="input" id="joinRoomCode" type="text" maxlength="6" placeholder="Room Code" inputmode="numeric">
+  <input class="input" id="joinServerUrl" type="text" placeholder="Server IP (e.g. 192.168.1.5:3456)">
+  <input class="input" id="joinName" type="text" maxlength="16" placeholder="Your Name">
+  <button class="btn primary" onclick="joinParty()">Join</button>
   <button class="btn" onclick="goScreen('home')">Back</button>
 </div>
 
 <!-- HOST LOBBY -->
 <div id="hostLobby" class="screen">
   <h2>🎉 Your Party</h2>
-  <div class="room-code" id="roomCodeDisplay">------</div>
-  <div class="qr-box" id="qrBox"></div>
-  <p style="color:#888;margin-bottom:12px">Share code, link, or QR to invite players</p>
-  <div class="player-list" id="hostPlayerList"></div>
-  <button class="btn primary large full" onclick="showGameSelect()" id="startGameBtn" disabled>Choose Game</button>
-  <button class="btn" onclick="leaveRoom()">Leave</button>
-</div>
-
-<!-- GAME SELECT -->
-<div id="gameSelect" class="screen">
-  <h2>Pick a Game</h2>
-  <div class="game-grid">
-    <div class="game-card" onclick="hostStartGame('patternLock')"><span class="emoji">🔒</span><span class="name">Pattern Lock</span></div>
-    <div class="game-card" onclick="hostStartGame('catchDrop')"><span class="emoji">🏀</span><span class="name">Catch the Drop</span></div>
-    <div class="game-card" onclick="hostStartGame('whackColor')"><span class="emoji">🎨</span><span class="name">Whack-a-Color</span></div>
-    <div class="game-card" onclick="hostStartGame('doubleTap')"><span class="emoji">👆👆</span><span class="name">Double Tap</span></div>
-    <div class="game-card" onclick="hostStartGame('flashCount')"><span class="emoji">⚡</span><span class="name">Flash Count</span></div>
-    <div class="game-card" onclick="hostStartGame('typingUnderFire')"><span class="emoji">⌨️🔥</span><span class="name">Typing Under Fire</span></div>
-    <div class="game-card" onclick="hostStartGame('lastToTap')"><span class="emoji">😱</span><span class="name">Last to Tap</span></div>
-  </div>
-  <button class="btn" onclick="goScreen('hostLobby')">Back</button>
+  <div style="font-size:2.5em;font-weight:900;letter-spacing:6px;color:#ffd93d;margin:8px 0" id="mpRoomCode">------</div>
+  <p style="color:#888;font-size:.85em" id="mpServerInfo"></p>
+  <div id="mpPlayerList" style="width:100%;max-width:300px;margin:8px 0"></div>
+  <p style="color:#666;font-size:.8em">Players join via code or QR</p>
+  <button class="btn success" onclick="mpStartGame()" id="mpStartBtn" disabled>Pick a Game</button>
+  <button class="btn" onclick="mpLeave()">Leave</button>
 </div>
 
 <!-- PLAYER LOBBY -->
 <div id="playerLobby" class="screen">
   <h2>Waiting...</h2>
-  <div class="room-code" id="playerRoomCode"></div>
-  <p style="color:#888">Host will pick a game soon</p>
-  <div class="player-list" id="playerPlayerList"></div>
-  <button class="btn" onclick="leaveRoom()">Leave</button>
+  <div id="mpPlayerList2" style="width:100%;max-width:300px;margin:8px 0"></div>
+  <p style="color:#888;font-size:.85em">Host will pick a game</p>
+  <button class="btn" onclick="mpLeave()">Leave</button>
 </div>
 
-<!-- COUNTDOWN OVERLAY -->
+<!-- COUNTDOWN -->
 <div id="countdownScreen" class="screen">
   <div class="countdown" id="countdownNum">3</div>
 </div>
 
-<!-- GAME AREAS -->
+<!-- GAME OVERLAYS (shared single + multi) -->
 <div id="gamePatternLock" class="game-area">
-  <div class="game-hud"><span id="plRound">Round 1</span><span id="plScore">0</span></div>
-  <div class="game-title">🔒 Memorise the pattern</div>
-  <div class="pattern-grid" id="plGrid"></div>
-  <p style="margin-top:16px;color:#666" id="plStatus">Watch...</p>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="plRound">R1</span><span id="plScore">0</span></div>
+  <div class="round-result" id="plResult"></div>
+  <div class="pl-grid" id="plGrid"></div>
+  <p style="margin-top:12px;color:#666;font-size:.9em" id="plStatus">Watch...</p>
 </div>
 
 <div id="gameCatchDrop" class="game-area">
-  <div class="game-hud"><span id="cdRound">Round 1</span><span id="cdScore">Score: 0</span><span id="cdMissed">Missed: 0/3</span></div>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="cdRound">R1</span><span id="cdScore">0</span><span>Miss:<span id="cdMiss">0</span>/3</span></div>
   <div class="drop-area" id="cdDropArea"></div>
 </div>
 
 <div id="gameWhackColor" class="game-area">
-  <div class="game-hud"><span id="wcRound">Round 1</span><span id="wcScore">0</span><span id="wcStreak"></span></div>
-  <div class="game-title" id="wcTarget">Tap <span style="color:#ff6b6b">RED</span></div>
-  <div class="color-grid" id="wcGrid"></div>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="wcRound">R1</span><span id="wcScore">0</span></div>
+  <div class="round-result" id="wcResult"></div>
+  <h2 id="wcTarget" style="margin-bottom:8px"></h2>
+  <div class="wc-grid" id="wcGrid"></div>
 </div>
 
 <div id="gameDoubleTap" class="game-area">
-  <div class="game-hud"><span id="dtRound">Round 1</span><span id="dtScore">0</span></div>
-  <div class="split-area">
-    <div class="split-left" id="dtLeft">👁️ Tap on sight</div>
-    <div class="split-right" id="dtRight">🔊 Tap on sound</div>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="dtRound">R1</span><span id="dtScore">0</span></div>
+  <div class="dt-area">
+    <div class="dt-side dt-left" id="dtLeft">👁️<br><span style="font-size:.5em">Tap on sight</span></div>
+    <div class="dt-side dt-right" id="dtRight">🔊<br><span style="font-size:.5em">Tap on sound</span></div>
   </div>
 </div>
 
 <div id="gameFlashCount" class="game-area">
-  <div class="game-hud"><span id="fcRound">Round 1</span><span id="fcScore">0</span></div>
-  <div class="flash-screen" id="fcFlash"></div>
-  <p style="margin-top:16px;color:#666" id="fcStatus">Get ready...</p>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="fcRound">R1</span><span id="fcScore">0</span></div>
+  <div class="fc-screen" id="fcFlash"></div>
+  <p style="margin-top:12px;color:#666" id="fcStatus">Get ready...</p>
   <input class="input" id="fcInput" type="number" placeholder="How many flashes?" style="display:none">
 </div>
 
 <div id="gameTypingUnderFire" class="game-area">
-  <div class="game-hud"><span id="tfRound">Round 1</span><span id="tfScore">0</span></div>
-  <div class="typing-area">
-    <div class="typing-target" id="tfTarget"></div>
-    <input class="typing-input" id="tfInput" placeholder="Type here..." autocomplete="off" autocorrect="off" autocapitalize="off">
-    <p style="margin-top:8px;color:#e74c3c;font-size:.8em" id="tfShake">📳 Vibrations incoming!</p>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="tfRound">R1</span><span id="tfScore">0</span></div>
+  <div class="tf-area">
+    <div class="tf-target" id="tfTarget"></div>
+    <input class="tf-input" id="tfInput" placeholder="Type here..." autocomplete="off" autocorrect="off" autocapitalize="off">
+    <p style="margin-top:8px;color:#e74c3c;font-size:.75em" id="tfShake">📳 Vibrations incoming!</p>
   </div>
 </div>
 
 <div id="gameLastToTap" class="game-area">
-  <div class="last-screen" id="ltScreen">
-    <div class="last-wait" id="ltStatus">🔴 WAIT...</div>
+  <button class="game-close" onclick="quitGame()">✕</button>
+  <div class="game-hud"><span id="ltRound">R1</span><span id="ltScore">0</span></div>
+  <div class="lt-area" id="ltScreen">
+    <div style="font-size:2.5em" id="ltStatus">🔴 WAIT...</div>
   </div>
-  <div class="game-hud"><span id="ltRound">Round 1</span><span id="ltOut">Still in! ✅</span></div>
 </div>
 
 </div>
 
 <script>
-// ── Global State ──
-let ws = null;
-let roomCode = null;
-let playerId = null;
-let isHost = false;
-let playerName = '';
-let gameState = {};
-let scores = {};
-let capacitorServer = null; // { ip, port } from embedded server
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let mode = 'solo'; // 'solo' | 'host' | 'player'
+let mpWs = null, mpRoom = null, mpPlayerId = null, mpIsHost = false, mpScores = {};
+let gameState = { game: null, score: 0, round: 1 };
+let gameTimers = [];
+const highScores = JSON.parse(localStorage.getItem('pghs') || '{}');
 
-// ── Capacitor detection ──
-function isCapacitorApp() {
-  return typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
-}
-
-// ── WebSocket ──
-function connect() {
-  let serverUrl;
-  if (capacitorServer) {
-    // Using embedded server — always localhost
-    serverUrl = 'localhost:' + capacitorServer.port;
-  } else {
-    serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
-  }
-  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-  ws = new WebSocket(proto + serverUrl);
-
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    handle(msg);
-  };
-
-  ws.onclose = () => {
-    setTimeout(connect, 2000);
-  };
-}
-
-function send(msg) {
-  if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
-}
-
-// ── Screen Navigation ──
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ── Create Room ──
-async function createRoom() {
-  // If running in Capacitor APK, start embedded server
-  if (isCapacitorApp() && !capacitorServer) {
-    try {
-      if (!Capacitor.Plugins || !Capacitor.Plugins.PartyGames) {
-        alert('Plugin not ready. Please restart the app.');
-        return;
-      }
-      const result = await Capacitor.Plugins.PartyGames.startServer();
-      capacitorServer = { ip: result.ip, port: result.port };
-      document.getElementById('serverUrl').value = result.ip + ':' + result.port;
-    } catch (e) {
-      alert('Failed to start server: ' + e.message);
-      return;
-    }
-  }
-  playerName = 'Host';
-  send({ type: 'create_room', name: playerName, avatar: '🦊' });
-}
+function showHost() { goScreen('hostScreen'); }
+function showJoin() { goScreen('joinScreen'); }
 
-// ── Join Room ──
-function showJoin() {
-  goScreen('join');
-}
-
-function joinRoom() {
-  const code = document.getElementById('roomInput').value.trim();
-  const name = document.getElementById('nameInput').value.trim() || 'Player';
-  if (!code || code.length !== 6) return;
-  playerName = name;
-  roomCode = code;
-  send({ type: 'join_room', roomCode: code, name: name, avatar: '🐱' });
-}
-
-function leaveRoom() {
-  if (ws) ws.close();
-  roomCode = null; playerId = null; isHost = false;
-  scores = {}; gameState = {};
-  hideAllGames();
+function mpLeave() {
+  if (mpWs) { mpWs.close(); mpWs = null; }
+  mpRoom = null; mpPlayerId = null; mpIsHost = false; mpScores = {};
+  mode = 'solo';
   goScreen('home');
-  setTimeout(connect, 500);
 }
 
-// ── Game Selection ──
-function showGameSelect() {
-  goScreen('gameSelect');
+// ══════════════════════════════════════════
+// GAME MENU
+// ══════════════════════════════════════════
+const games = [
+  { id:'patternLock', emoji:'🔒', name:'Pattern Lock' },
+  { id:'catchDrop', emoji:'🏀', name:'Catch the Drop' },
+  { id:'whackColor', emoji:'🎨', name:'Whack-a-Color' },
+  { id:'doubleTap', emoji:'👆👆', name:'Double Tap' },
+  { id:'flashCount', emoji:'⚡', name:'Flash Count' },
+  { id:'typingUnderFire', emoji:'⌨️🔥', name:'Typing Under Fire' },
+  { id:'lastToTap', emoji:'😱', name:'Last to Tap' },
+];
+
+function buildMenu() {
+  const grid = document.getElementById('gameGrid');
+  grid.innerHTML = games.map(g => {
+    const hs = highScores[g.id] ? `🏆${highScores[g.id]}` : '';
+    return `<div class="game-card" onclick="startSolo('${g.id}')">
+      <span class="emoji">${g.emoji}</span>
+      <span class="name">${g.name}</span>
+      <span class="high-score">${hs}</span>
+    </div>`;
+  }).join('');
+}
+buildMenu();
+
+function startSolo(gameId) {
+  mode = 'solo';
+  gameState = { game: gameId, score: 0, round: 1 };
+  hideAllGames();
+  startGame(gameId);
 }
 
-function hostStartGame(game) {
-  send({ type: 'start_game', game, config: {} });
-  goScreen('hostLobby');
+// ══════════════════════════════════════════
+// MULTIPLAYER — HOST
+// ══════════════════════════════════════════
+function startHost() {
+  const url = document.getElementById('hostServerUrl').value.trim() || location.host;
+  connectMP(url, true);
 }
 
-// ── Player List Render ──
-function renderPlayerList(containerId, players) {
-  const el = document.getElementById(containerId);
-  if (!players || !players.length) { el.innerHTML = '<p style="color:#666">No players yet...</p>'; return; }
-  el.innerHTML = players.map(p => `
-    <div class="player-row">
-      <span class="player-avatar">${p.avatar}</span>
-      <span class="player-name">${p.name}</span>
-      ${p.isHost ? '<span class="host-badge">HOST</span>' : ''}
-    </div>
-  `).join('');
+function connectMP(serverUrl, asHost) {
+  if (mpWs) mpWs.close();
+  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  mpWs = new WebSocket(proto + serverUrl);
+
+  mpWs.onopen = () => {
+    if (asHost) {
+      mpWs.send(JSON.stringify({ type: 'create_room', name: 'Host', avatar: '🦊' }));
+    }
+  };
+
+  mpWs.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    mpHandle(msg);
+  };
+
+  mpWs.onclose = () => { if (mode !== 'solo') setTimeout(() => connectMP(serverUrl, false), 2000); };
 }
 
-// ── Message Handler ──
-function handle(msg) {
+function mpHandle(msg) {
   switch (msg.type) {
     case 'room_created':
-      roomCode = msg.roomCode; playerId = msg.playerId; isHost = true;
-      document.getElementById('roomCodeDisplay').textContent = msg.roomCode;
-      generateQR(msg.roomCode);
+      mpRoom = msg.roomCode; mpPlayerId = msg.playerId; mpIsHost = true; mode = 'host';
+      document.getElementById('mpRoomCode').textContent = msg.roomCode;
+      document.getElementById('mpServerInfo').textContent = 'Players join with this code';
       goScreen('hostLobby');
       break;
-
     case 'joined':
-      playerId = msg.playerId; isHost = false;
-      document.getElementById('playerRoomCode').textContent = roomCode;
+      mpPlayerId = msg.playerId; mpIsHost = false; mode = 'player';
       goScreen('playerLobby');
       break;
-
     case 'player_list':
-      renderPlayerList('hostPlayerList', msg.players);
-      renderPlayerList('playerPlayerList', msg.players);
-      if (isHost) {
-        document.getElementById('startGameBtn').disabled = msg.players.length < 1;
-      }
+      renderMPPlayers(msg.players);
+      if (mpIsHost) document.getElementById('mpStartBtn').disabled = false;
       break;
-
-    case 'you_are_host':
-      isHost = true;
-      goScreen('hostLobby');
-      break;
-
     case 'game_starting':
-      goScreen(isHost ? 'hostLobby' : 'playerLobby');
       startCountdown();
       break;
-
     case 'game_start':
-      gameState = { game: msg.game, round: msg.round, score: 0 };
+      gameState = { game: msg.game, score: 0, round: msg.round || 1 };
       hideAllGames();
       startGame(msg.game);
       break;
-
-    case 'game_event':
-      handleGameEvent(msg.event, msg.data);
-      break;
-
     case 'player_result':
-      // Host sees results
-      if (isHost) handleHostResult(msg);
       break;
-
     case 'scoreboard':
-      scores = msg.scores || {};
+      mpScores = msg.scores || {};
       break;
-
     case 'back_to_lobby':
       hideAllGames();
-      scores = msg.scores || {};
-      if (isHost) {
-        renderPlayerList('hostPlayerList', msg.players);
-        goScreen('hostLobby');
-      } else {
-        renderPlayerList('playerPlayerList', msg.players);
-        goScreen('playerLobby');
-      }
+      if (mpIsHost) goScreen('hostLobby'); else goScreen('playerLobby');
       break;
-
     case 'error':
       alert(msg.message);
       break;
+    case 'you_are_host':
+      mpIsHost = true; mode = 'host';
+      goScreen('hostLobby');
+      break;
   }
 }
 
-// ── QR Code ──
-function generateQR(code) {
-  let url;
-  if (capacitorServer) {
-    url = `http://${capacitorServer.ip}:${capacitorServer.port}?room=${code}`;
-  } else {
-    const serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
-    url = `http://${serverUrl}?room=${code}`;
-  }
-  const box = document.getElementById('qrBox');
-  box.innerHTML = '';
-  const img = document.createElement('img');
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
-  img.width = 150; img.height = 150;
-  box.appendChild(img);
-
-  const link = document.createElement('p');
-  link.style.cssText = 'font-size:.75em;color:#888;margin-top:4px;word-break:break-all';
-  link.textContent = url;
-  box.appendChild(link);
+function renderMPPlayers(players) {
+  const html = (players || []).map(p =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin:3px 0;background:#1a1a2e;border-radius:10px">
+      <span style="font-size:1.3em">${p.avatar}</span>
+      <span style="flex:1;text-align:left">${p.name}</span>
+      ${p.isHost ? '<span style="font-size:.7em;background:#6c5ce7;padding:2px 8px;border-radius:8px">HOST</span>' : ''}
+    </div>`
+  ).join('');
+  document.getElementById('mpPlayerList').innerHTML = html;
+  document.getElementById('mpPlayerList2').innerHTML = html;
 }
 
-// ── Countdown ──
+function mpStartGame() {
+  if (!mpWs || !mpIsHost) return;
+  goScreen('hostLobby');
+  // Show game picker on host screen
+  const grid = document.getElementById('gameGrid');
+  grid.style.display = 'grid';
+  grid.innerHTML = games.map(g =>
+    `<div class="game-card" onclick="mpPickGame('${g.id}')">
+      <span class="emoji">${g.emoji}</span><span class="name">${g.name}</span>
+    </div>`
+  ).join('');
+}
+
+function mpPickGame(gameId) {
+  mpWs.send(JSON.stringify({ type: 'start_game', game: gameId }));
+  document.getElementById('gameGrid').style.display = '';
+  buildMenu();
+}
+
+function joinParty() {
+  const code = document.getElementById('joinRoomCode').value.trim();
+  const url = document.getElementById('joinServerUrl').value.trim();
+  const name = document.getElementById('joinName').value.trim() || 'Player';
+  if (!code || code.length !== 6 || !url) return;
+  connectMP(url, false);
+  setTimeout(() => {
+    if (mpWs && mpWs.readyState === 1) {
+      mpWs.send(JSON.stringify({ type: 'join_room', roomCode: code, name, avatar: '🐱' }));
+    }
+  }, 500);
+}
+
 function startCountdown() {
   goScreen('countdownScreen');
   let n = 3;
-  const el = document.getElementById('countdownNum');
-  el.textContent = n;
+  document.getElementById('countdownNum').textContent = n;
   const iv = setInterval(() => {
-    n--;
-    if (n <= 0) { clearInterval(iv); return; }
-    el.textContent = n;
+    if (--n <= 0) { clearInterval(iv); return; }
+    document.getElementById('countdownNum').textContent = n;
   }, 1000);
 }
 
-// ── Hide all games ──
+// ══════════════════════════════════════════
+// GAME DISPATCH
+// ══════════════════════════════════════════
 function hideAllGames() {
   document.querySelectorAll('.game-area').forEach(g => g.classList.remove('active'));
+  gameTimers.forEach(clearInterval); gameTimers = [];
 }
 
-// ══════════════════════════════════════════
-//  GAME: PATTERN LOCK
-// ══════════════════════════════════════════
-let plPattern = [];
-let plPlayerPattern = [];
-let plPhase = 'watch';
-
-function startGame(game) {
+function startGame(id) {
   hideAllGames();
-  switch (game) {
-    case 'patternLock': startPatternLock(); break;
-    case 'catchDrop': startCatchDrop(); break;
-    case 'whackColor': startWhackColor(); break;
-    case 'doubleTap': startDoubleTap(); break;
-    case 'flashCount': startFlashCount(); break;
-    case 'typingUnderFire': startTypingUnderFire(); break;
-    case 'lastToTap': startLastToTap(); break;
+  switch (id) {
+    case 'patternLock': startPL(); break;
+    case 'catchDrop': startCD(); break;
+    case 'whackColor': startWC(); break;
+    case 'doubleTap': startDT(); break;
+    case 'flashCount': startFC(); break;
+    case 'typingUnderFire': startTF(); break;
+    case 'lastToTap': startLT(); break;
   }
 }
 
-function startPatternLock() {
-  const el = document.getElementById('gamePatternLock');
-  el.classList.add('active');
-  document.getElementById('plScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('plRound').textContent = 'Round ' + (gameState.round || 1);
+function quitGame() {
+  hideAllGames();
+  if (mode === 'solo') {
+    const g = gameState.game;
+    if (g && gameState.score > (highScores[g] || 0)) {
+      highScores[g] = gameState.score;
+      localStorage.setItem('pghs', JSON.stringify(highScores));
+    }
+    buildMenu();
+  }
+  if (mode === 'host' && mpWs) {
+    mpWs.send(JSON.stringify({ type: 'back_to_lobby' }));
+  }
+  if (mode === 'player' && mpWs) {
+    mpWs.send(JSON.stringify({ type: 'game_result', score: gameState.score, round: gameState.round }));
+  }
+  goScreen(mode === 'solo' ? 'home' : (mpIsHost ? 'hostLobby' : 'playerLobby'));
+}
+
+function addScore(pts) {
+  gameState.score += pts;
+}
+
+function showResult(elId, correct) {
+  const el = document.getElementById(elId);
+  el.textContent = correct ? '✅' : '❌';
+  el.className = 'round-result show ' + (correct ? 'correct' : 'wrong');
+  setTimeout(() => el.classList.remove('show'), 600);
+}
+
+// ══════════════════════════════════════════
+// PATTERN LOCK
+// ══════════════════════════════════════════
+let plPattern = [], plInput = [], plPhase = '';
+
+function startPL() {
+  document.getElementById('gamePatternLock').classList.add('active');
+  document.getElementById('plScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('plRound').textContent = 'R' + gameState.round;
   document.getElementById('plStatus').textContent = 'Watch...';
 
-  // Build grid
   const grid = document.getElementById('plGrid');
   grid.innerHTML = '';
   for (let i = 0; i < 9; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'pattern-dot';
-    dot.dataset.idx = i;
-    dot.addEventListener('click', () => plDotTap(i));
-    grid.appendChild(dot);
+    const d = document.createElement('div');
+    d.className = 'pl-dot'; d.dataset.idx = i;
+    d.addEventListener('click', () => plTap(i));
+    grid.appendChild(d);
   }
 
-  // Generate pattern
-  const len = 3 + (gameState.round || 1);
+  const len = 3 + Math.min(gameState.round, 5);
   plPattern = [];
   const used = new Set();
   while (plPattern.length < len) {
-    const d = Math.floor(Math.random() * 9);
-    if (!used.has(d) || Math.random() < 0.3) { plPattern.push(d); used.add(d); }
+    const x = Math.floor(Math.random() * 9);
+    if (!used.has(x) || Math.random() < 0.2) { plPattern.push(x); used.add(x); }
   }
-  plPlayerPattern = [];
-  plPhase = 'watch';
-
-  // Show pattern
-  showPattern(0);
+  plInput = []; plPhase = 'watch';
+  plShow(0);
 }
 
-function showPattern(i) {
+function plShow(i) {
   if (i >= plPattern.length) {
     plPhase = 'input';
-    document.getElementById('plStatus').textContent = 'Your turn! Tap the pattern';
-    document.querySelectorAll('.pattern-dot').forEach(d => d.classList.remove('lit'));
+    document.getElementById('plStatus').textContent = 'Your turn!';
+    document.querySelectorAll('.pl-dot').forEach(d => d.classList.remove('lit'));
     return;
   }
-  document.querySelectorAll('.pattern-dot').forEach(d => d.classList.remove('lit'));
-  const dot = document.querySelector(`.pattern-dot[data-idx="${plPattern[i]}"]`);
+  document.querySelectorAll('.pl-dot').forEach(d => d.classList.remove('lit'));
+  const dot = document.querySelector(`.pl-dot[data-idx="${plPattern[i]}"]`);
   if (dot) dot.classList.add('lit');
-  setTimeout(() => showPattern(i + 1), 600);
+  setTimeout(() => plShow(i + 1), 500);
 }
 
-function plDotTap(i) {
+function plTap(i) {
   if (plPhase !== 'input') return;
-  const dot = document.querySelector(`.pattern-dot[data-idx="${i}"]`);
-  dot.classList.add('lit');
-  setTimeout(() => dot.classList.remove('lit'), 200);
-
-  plPlayerPattern.push(i);
-  if (plPlayerPattern.length === plPattern.length) {
-    const correct = plPlayerPattern.every((v, j) => v === plPattern[j]);
-    if (correct) {
-      gameState.score = (gameState.score || 0) + plPattern.length * 10;
-      document.getElementById('plScore').textContent = 'Score: ' + gameState.score;
-      document.getElementById('plStatus').textContent = '✅ Correct!';
-      send({ type: 'game_result', game: 'patternLock', score: gameState.score, round: gameState.round });
-      setTimeout(() => { gameState.round++; startPatternLock(); }, 1500);
-    } else {
-      document.getElementById('plStatus').textContent = '❌ Wrong! Game over';
-      send({ type: 'game_result', game: 'patternLock', score: gameState.score, round: gameState.round });
-      setTimeout(() => finishGame(), 2000);
-    }
+  document.querySelector(`.pl-dot[data-idx="${i}"]`).classList.add('tapped');
+  setTimeout(() => document.querySelector(`.pl-dot[data-idx="${i}"]`).classList.remove('tapped'), 200);
+  plInput.push(i);
+  if (plInput.length === plPattern.length) {
+    const ok = plInput.every((v, j) => v === plPattern[j]);
+    showResult('plResult', ok);
+    if (ok) { addScore(plPattern.length * 10); document.getElementById('plScore').textContent = 'Score: ' + gameState.score; }
+    document.getElementById('plStatus').textContent = ok ? '✅' : '❌';
+    setTimeout(() => { gameState.round++; startPL(); }, 1200);
   }
 }
 
 // ══════════════════════════════════════════
-//  GAME: CATCH THE DROP
+// CATCH THE DROP
 // ══════════════════════════════════════════
-let cdBalls = [];
 let cdMissed = 0;
-let cdTimer = null;
 
-function startCatchDrop() {
-  const el = document.getElementById('gameCatchDrop');
-  el.classList.add('active');
-  document.getElementById('cdScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('cdRound').textContent = 'Round ' + (gameState.round || 1);
-  document.getElementById('cdMissed').textContent = 'Missed: 0/3';
-
-  const area = document.getElementById('cdDropArea');
-  area.innerHTML = '';
+function startCD() {
+  document.getElementById('gameCatchDrop').classList.add('active');
+  document.getElementById('cdScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('cdRound').textContent = 'R' + gameState.round;
+  document.getElementById('cdMiss').textContent = '0';
+  document.getElementById('cdDropArea').innerHTML = '';
   cdMissed = 0;
-  cdSpawnBall();
-  cdTimer = setInterval(cdSpawnBall, 800 + Math.random() * 400);
+  cdSpawn();
+  gameTimers.push(setInterval(cdSpawn, 700 + Math.random() * 350));
 }
 
-function cdSpawnBall() {
+function cdSpawn() {
   const area = document.getElementById('cdDropArea');
   const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#a29bfe','#ff922b'];
-  const ball = document.createElement('div');
-  ball.className = 'ball';
-  ball.style.left = (5 + Math.random() * 85) + '%';
-  ball.style.background = colors[Math.floor(Math.random() * colors.length)];
-  ball.style.boxShadow = '0 0 20px ' + ball.style.background;
-
-  ball.addEventListener('pointerdown', (e) => {
+  const b = document.createElement('div');
+  b.className = 'ball';
+  b.style.left = (5 + Math.random() * 85) + '%';
+  b.style.background = colors[Math.floor(Math.random() * colors.length)];
+  b.style.boxShadow = '0 0 20px ' + b.style.background;
+  b.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
-    gameState.score = (gameState.score || 0) + 10;
+    addScore(10);
     document.getElementById('cdScore').textContent = 'Score: ' + gameState.score;
-    ball.remove();
-    cdBalls = cdBalls.filter(b => b !== ball);
+    b.remove();
   });
-
-  area.appendChild(ball);
-  cdBalls.push(ball);
-
-  const duration = 2.5 + Math.random() * 1.5;
-  ball.style.animation = `cdFall ${duration}s linear forwards`;
-
+  area.appendChild(b);
+  const dur = 2 + Math.random() * 1.5;
+  b.style.animation = `cdFall ${dur}s linear forwards`;
   setTimeout(() => {
-    if (ball.parentNode) {
-      cdMissed++;
-      document.getElementById('cdMissed').textContent = 'Missed: ' + cdMissed + '/3';
-      ball.remove();
-      cdBalls = cdBalls.filter(b => b !== ball);
-      if (cdMissed >= 3) {
-        clearInterval(cdTimer);
-        send({ type: 'game_result', game: 'catchDrop', score: gameState.score, round: gameState.round });
-        setTimeout(finishGame, 1500);
-      }
-    }
-  }, duration * 1000);
+    if (b.parentNode) { cdMissed++; b.remove(); document.getElementById('cdMiss').textContent = cdMissed; }
+    if (cdMissed >= 3) { gameTimers.forEach(clearInterval); gameTimers = []; setTimeout(quitGame, 1000); }
+  }, dur * 1000);
 }
 
-const cdStyle = document.createElement('style');
-cdStyle.textContent = '@keyframes cdFall{to{top:calc(100% + 40px)}}';
-document.head.appendChild(cdStyle);
-
 // ══════════════════════════════════════════
-//  GAME: WHACK-A-COLOR
+// WHACK-A-COLOR
 // ══════════════════════════════════════════
-let wcTarget = '';
-let wcTimer = null;
+let wcTargetColor = '';
 
-function startWhackColor() {
-  const el = document.getElementById('gameWhackColor');
-  el.classList.add('active');
-  document.getElementById('wcScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('wcRound').textContent = 'Round ' + (gameState.round || 1);
+function startWC() {
+  document.getElementById('gameWhackColor').classList.add('active');
+  document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('wcRound').textContent = 'R' + gameState.round;
 
   const colors = ['#ff6b6b','#4d96ff','#6bcb77','#ffd93d','#ff922b','#a29bfe'];
   const names = ['RED','BLUE','GREEN','YELLOW','ORANGE','PURPLE'];
   const pick = Math.floor(Math.random() * colors.length);
-  wcTarget = colors[pick];
-  document.getElementById('wcTarget').innerHTML = `Tap <span style="color:${wcTarget}">${names[pick]}</span>`;
+  wcTargetColor = colors[pick];
+  document.getElementById('wcTarget').innerHTML = `Tap <span style="color:${wcTargetColor}">${names[pick]}</span>`;
 
   const grid = document.getElementById('wcGrid');
   grid.innerHTML = '';
-  const shuffled = [...colors].sort(() => Math.random() - 0.5);
-  shuffled.forEach(c => {
+  [...colors].sort(() => Math.random() - 0.5).forEach(c => {
     const btn = document.createElement('button');
-    btn.className = 'color-btn';
-    btn.style.background = c;
+    btn.className = 'wc-btn'; btn.style.background = c;
     btn.addEventListener('pointerdown', () => {
-      if (c === wcTarget) {
-        gameState.score = (gameState.score || 0) + 10;
-        document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
-        btn.classList.add('correct');
-        setTimeout(() => newRoundWhack(), 200);
+      if (c === wcTargetColor) {
+        addScore(10); document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
+        btn.classList.add('correct'); showResult('wcResult', true);
+        setTimeout(() => { gameState.round++; startWC(); }, 300);
       } else {
-        btn.classList.add('wrong');
-        gameState.score = Math.max(0, (gameState.score || 0) - 5);
+        btn.classList.add('wrong'); addScore(-5);
         document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
         setTimeout(() => btn.classList.remove('wrong'), 300);
       }
     });
     grid.appendChild(btn);
   });
-
-  // Auto-next after 3s
-  wcTimer = setTimeout(newRoundWhack, 3000);
-}
-
-function newRoundWhack() {
-  gameState.round++;
-  startWhackColor();
+  gameTimers.push(setTimeout(() => { gameState.round++; startWC(); }, 3500));
 }
 
 // ══════════════════════════════════════════
-//  GAME: DOUBLE TAP
+// DOUBLE TAP
 // ══════════════════════════════════════════
-let dtTimer = null;
-let dtActive = false;
+function startDT() {
+  document.getElementById('gameDoubleTap').classList.add('active');
+  document.getElementById('dtScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('dtRound').textContent = 'R' + gameState.round;
+  document.getElementById('dtLeft').style.background = '#1a1a3e';
+  document.getElementById('dtLeft').innerHTML = '👁️<br><span style="font-size:.5em">Tap on sight</span>';
+  document.getElementById('dtRight').style.background = '#1e1a2e';
+  document.getElementById('dtRight').innerHTML = '🔊<br><span style="font-size:.5em">Tap on sound</span>';
 
-function startDoubleTap() {
-  const el = document.getElementById('gameDoubleTap');
-  el.classList.add('active');
-  document.getElementById('dtScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('dtRound').textContent = 'Round ' + (gameState.round || 1);
-  document.getElementById('dtLeft').innerHTML = '👁️<br>Tap on sight';
-  document.getElementById('dtRight').innerHTML = '🔊<br>Tap on sound';
-  dtActive = false;
+  let active = false;
 
   const left = document.getElementById('dtLeft');
-  const right = document.getElementById('dtRight');
-
-  left.onpointerdown = null;
-  right.onpointerdown = null;
-
-  // Sight stimulus (left side)
-  setTimeout(() => {
-    left.style.background = '#6c5ce7';
-    left.innerHTML = '👁️<br><span style="font-size:.7em">TAP!</span>';
-    dtActive = true;
-    const start = Date.now();
+  gameTimers.push(setTimeout(() => {
+    left.style.background = '#6c5ce7'; left.innerHTML = '👁️<br><span style="font-size:.5em">TAP!</span>';
+    active = true; const st = Date.now();
     left.onpointerdown = () => {
-      if (!dtActive) return;
-      const rt = Date.now() - start;
-      const pts = Math.max(0, Math.floor(50 - rt));
-      gameState.score = (gameState.score || 0) + pts;
+      if (!active) return;
+      addScore(Math.max(0, 50 - (Date.now() - st)));
       document.getElementById('dtScore').textContent = 'Score: ' + gameState.score;
-      left.style.background = '#1a1a3e'; left.innerHTML = '👁️<br>✅';
-      dtActive = false;
+      left.style.background = '#1a1a3e'; left.innerHTML = '👁️<br>✅'; active = false;
     };
-    // Missed
-    setTimeout(() => {
-      if (dtActive) { left.style.background = '#1a1a3e'; left.innerHTML = '👁️<br>❌'; dtActive = false; }
-    }, 1500);
-  }, 500 + Math.random() * 1500);
+    setTimeout(() => { if (active) { left.style.background = '#1a1a3e'; left.innerHTML = '👁️<br>❌'; active = false; } }, 1500);
+  }, 500 + Math.random() * 1500));
 
-  // Sound stimulus (right side - simulate with visual for now)
-  setTimeout(() => {
-    right.style.background = '#e74c3c';
-    right.innerHTML = '🔊<br><span style="font-size:.7em">TAP!</span>';
-    dtActive = true;
-    const start = Date.now();
+  const right = document.getElementById('dtRight');
+  gameTimers.push(setTimeout(() => {
+    right.style.background = '#e74c3c'; right.innerHTML = '🔊<br><span style="font-size:.5em">TAP!</span>';
+    active = true; const st = Date.now();
     right.onpointerdown = () => {
-      if (!dtActive) return;
-      const rt = Date.now() - start;
-      const pts = Math.max(0, Math.floor(50 - rt));
-      gameState.score = (gameState.score || 0) + pts;
+      if (!active) return;
+      addScore(Math.max(0, 50 - (Date.now() - st)));
       document.getElementById('dtScore').textContent = 'Score: ' + gameState.score;
-      right.style.background = '#1e1a2e'; right.innerHTML = '🔊<br>✅';
-      dtActive = false;
+      right.style.background = '#1e1a2e'; right.innerHTML = '🔊<br>✅'; active = false;
     };
-    setTimeout(() => {
-      if (dtActive) { right.style.background = '#1e1a2e'; right.innerHTML = '🔊<br>❌'; dtActive = false; }
-    }, 1500);
-  }, 1500 + Math.random() * 1500);
+    setTimeout(() => { if (active) { right.style.background = '#1e1a2e'; right.innerHTML = '🔊<br>❌'; active = false; } }, 1500);
+  }, 1500 + Math.random() * 1500));
 
-  // Next round
-  setTimeout(() => { gameState.round++; startDoubleTap(); }, 3500);
+  gameTimers.push(setTimeout(() => { gameState.round++; startDT(); }, 4000));
 }
 
 // ══════════════════════════════════════════
-//  GAME: FLASH COUNT
+// FLASH COUNT
 // ══════════════════════════════════════════
-function startFlashCount() {
-  const el = document.getElementById('gameFlashCount');
-  el.classList.add('active');
-  document.getElementById('fcScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('fcRound').textContent = 'Round ' + (gameState.round || 1);
+function startFC() {
+  document.getElementById('gameFlashCount').classList.add('active');
+  document.getElementById('fcScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('fcRound').textContent = 'R' + gameState.round;
   document.getElementById('fcStatus').textContent = 'Get ready...';
   document.getElementById('fcInput').style.display = 'none';
   document.getElementById('fcInput').value = '';
+  const f = document.getElementById('fcFlash');
+  f.style.background = '#0f0f1a';
 
-  const count = 2 + Math.floor(Math.random() * Math.min(8, 2 + gameState.round));
-  const flash = document.getElementById('fcFlash');
-  flash.style.background = '#0f0f1a';
-
+  const count = 2 + Math.floor(Math.random() * Math.min(9, 2 + gameState.round));
   let i = 0;
   const iv = setInterval(() => {
-    flash.classList.add('flash');
-    setTimeout(() => flash.classList.remove('flash'), 80);
-    i++;
-    if (i >= count) {
+    f.classList.add('flash');
+    setTimeout(() => f.classList.remove('flash'), 80);
+    if (++i >= count) {
       clearInterval(iv);
       setTimeout(() => {
         document.getElementById('fcStatus').textContent = 'How many flashes?';
-        document.getElementById('fcInput').style.display = 'block';
-        document.getElementById('fcInput').focus();
-        document.getElementById('fcInput').onchange = function() {
-          const guess = parseInt(this.value);
-          if (guess === count) {
-            gameState.score = (gameState.score || 0) + count * 15;
-            document.getElementById('fcScore').textContent = 'Score: ' + gameState.score;
-            document.getElementById('fcStatus').textContent = '✅ Correct! ' + count + ' flashes';
-          } else {
-            document.getElementById('fcStatus').textContent = '❌ It was ' + count + ' flashes';
-          }
+        const inp = document.getElementById('fcInput');
+        inp.style.display = 'block'; inp.focus();
+        inp.onchange = function() {
+          const g = parseInt(this.value);
+          if (g === count) { addScore(count * 15); document.getElementById('fcScore').textContent = 'Score: ' + gameState.score; }
+          document.getElementById('fcStatus').textContent = (g === count ? '✅ ' : '❌ It was ') + count + ' flashes';
           this.style.display = 'none';
-          send({ type: 'game_result', game: 'flashCount', score: gameState.score, round: gameState.round });
-          setTimeout(() => { gameState.round++; startFlashCount(); }, 1500);
+          setTimeout(() => { gameState.round++; startFC(); }, 1200);
         };
       }, 300);
     }
@@ -731,168 +650,91 @@ function startFlashCount() {
 }
 
 // ══════════════════════════════════════════
-//  GAME: TYPING UNDER FIRE
+// TYPING UNDER FIRE
 // ══════════════════════════════════════════
-const tfSentences = [
-  "the quick brown fox jumps over the lazy dog",
-  "party games are the best games",
-  "tap fast but type carefully",
-  "vibrations incoming stay focused",
-  "can you type while the phone shakes",
-  "speed and accuracy both matter here",
-  "one two three four five six seven eight",
-  "keep calm and carry on typing"
-];
+const sentences = ["the quick brown fox jumps over the lazy dog","party games are the best games","tap fast but type carefully","vibrations incoming stay focused","can you type while the phone shakes","speed and accuracy both matter","one two three four five six seven","keep calm and carry on typing"];
 
-function startTypingUnderFire() {
-  const el = document.getElementById('gameTypingUnderFire');
-  el.classList.add('active');
-  document.getElementById('tfScore').textContent = 'Score: ' + (gameState.score || 0);
-  document.getElementById('tfRound').textContent = 'Round ' + (gameState.round || 1);
+function startTF() {
+  document.getElementById('gameTypingUnderFire').classList.add('active');
+  document.getElementById('tfScore').textContent = 'Score: ' + gameState.score;
+  document.getElementById('tfRound').textContent = 'R' + gameState.round;
   document.getElementById('tfInput').value = '';
 
-  const sentence = tfSentences[Math.floor(Math.random() * tfSentences.length)];
-  document.getElementById('tfTarget').textContent = sentence;
+  const s = sentences[Math.floor(Math.random() * sentences.length)];
+  document.getElementById('tfTarget').textContent = s;
+  const inp = document.getElementById('tfInput'); inp.focus();
 
-  const input = document.getElementById('tfInput');
-  input.focus();
+  let shaker;
+  if (navigator.vibrate) shaker = setInterval(() => navigator.vibrate([30, 50, 30]), 800 + Math.random() * 1200);
+  const start = Date.now();
 
-  // Vibrate if available
-  let shakeTimer;
-  if (navigator.vibrate) {
-    shakeTimer = setInterval(() => {
-      navigator.vibrate([30, 50, 30]);
-    }, 800 + Math.random() * 1200);
-  }
-
-  input.oninput = function() {
-    const typed = this.value.trim().toLowerCase();
-    if (typed === sentence) {
-      clearInterval(shakeTimer);
-      const elapsed = (Date.now() - tfStart) / 1000;
-      const pts = Math.max(10, Math.floor(200 / elapsed));
-      gameState.score = (gameState.score || 0) + pts;
-      document.getElementById('tfScore').textContent = 'Score: ' + gameState.score;
-      document.getElementById('tfShake').textContent = '✅ Done in ' + elapsed.toFixed(1) + 's!';
-      send({ type: 'game_result', game: 'typingUnderFire', score: gameState.score, round: gameState.round });
-      setTimeout(() => { gameState.round++; startTypingUnderFire(); }, 1500);
+  inp.oninput = function() {
+    if (this.value.trim().toLowerCase() === s) {
+      if (shaker) clearInterval(shaker);
+      const pts = Math.max(10, Math.floor(200 / ((Date.now() - start) / 1000)));
+      addScore(pts); document.getElementById('tfScore').textContent = 'Score: ' + gameState.score;
+      document.getElementById('tfShake').textContent = '✅ ' + ((Date.now() - start) / 1000).toFixed(1) + 's!';
+      setTimeout(() => { gameState.round++; startTF(); }, 1500);
     }
   };
-
-  const tfStart = Date.now();
 }
 
 // ══════════════════════════════════════════
-//  GAME: LAST TO TAP
+// LAST TO TAP
 // ══════════════════════════════════════════
-let ltTimer = null;
-let ltEarly = false;
-
-function startLastToTap() {
-  const el = document.getElementById('gameLastToTap');
-  el.classList.add('active');
-  document.getElementById('ltRound').textContent = 'Round ' + (gameState.round || 1);
-  document.getElementById('ltOut').textContent = 'Still in! ✅';
+function startLT() {
+  document.getElementById('gameLastToTap').classList.add('active');
+  document.getElementById('ltRound').textContent = 'R' + gameState.round;
+  document.getElementById('ltScore').textContent = 'Score: ' + gameState.score;
   document.getElementById('ltStatus').textContent = '🔴 WAIT...';
-  document.getElementById('ltScreen').style.background = '#4a0000';
-  ltEarly = false;
-
-  // Random delay 1.5-4s then GO
-  const delay = 1500 + Math.random() * 2500;
   const screen = document.getElementById('ltScreen');
+  screen.style.background = '#4a0000';
+
+  const delay = 1500 + Math.random() * 2500;
   const goTime = Date.now() + delay;
+  let resolved = false;
 
   screen.onpointerdown = () => {
+    if (resolved) return;
     const now = Date.now();
     if (now < goTime) {
-      // Tapped too early
-      ltEarly = true;
-      document.getElementById('ltOut').textContent = 'Too early! ❌';
-      document.getElementById('ltStatus').textContent = '❌ OUT';
+      resolved = true;
+      document.getElementById('ltStatus').textContent = '❌ Too early!';
       screen.style.background = '#4a0000';
-      send({ type: 'game_result', game: 'lastToTap', early: true, round: gameState.round });
-      setTimeout(finishGame, 2000);
+      setTimeout(quitGame, 1500);
     } else {
-      // Tapped after GO — record reaction time
+      resolved = true;
       const rt = now - goTime;
-      if (!ltEarly) {
-        gameState.score = (gameState.score || 0) + Math.max(0, Math.floor(100 - rt));
-        document.getElementById('ltStatus').textContent = '✅ TAPPED!';
-        document.getElementById('ltOut').textContent = 'RT: ' + rt + 'ms';
-        send({ type: 'game_result', game: 'lastToTap', reactionTime: rt, score: gameState.score, round: gameState.round });
-        setTimeout(() => { gameState.round++; startLastToTap(); }, 1500);
-      }
+      addScore(Math.max(0, 100 - rt));
+      document.getElementById('ltScore').textContent = 'Score: ' + gameState.score;
+      document.getElementById('ltStatus').textContent = '✅ ' + rt + 'ms';
+      screen.style.background = '#004a00';
+      setTimeout(() => { gameState.round++; startLT(); }, 1200);
     }
   };
 
-  ltTimer = setTimeout(() => {
+  gameTimers.push(setTimeout(() => {
     document.getElementById('ltStatus').textContent = '🟢 GO!';
-    document.getElementById('ltScreen').style.background = '#004a00';
-  }, delay);
+    screen.style.background = '#004a00';
+  }, delay));
 
-  // Timeout — too slow
-  setTimeout(() => {
-    if (document.getElementById('ltScreen').style.background === 'rgb(0, 74, 0)') {
-      document.getElementById('ltOut').textContent = 'Too slow! ❌';
-      document.getElementById('ltStatus').textContent = '❌ OUT';
-      send({ type: 'game_result', game: 'lastToTap', tooSlow: true, round: gameState.round });
-      setTimeout(finishGame, 2000);
+  gameTimers.push(setTimeout(() => {
+    if (!resolved) {
+      resolved = true;
+      document.getElementById('ltStatus').textContent = '❌ Too slow!';
+      setTimeout(quitGame, 1500);
     }
-  }, delay + 2000);
-}
-
-// ══════════════════════════════════════════
-//  HOST RESULT AGGREGATION
-// ══════════════════════════════════════════
-let hostResults = [];
-
-function handleHostResult(msg) {
-  hostResults.push(msg);
-}
-
-// ── Game Event Handler (for synchronized events from host) ──
-function handleGameEvent(event, data) {
-  switch (event) {
-    case 'flash': startFlashCount(); break;
-    case 'lastToTap_go': document.getElementById('ltScreen')?.click(); break;
-  }
-}
-
-// ── Finish game / back to lobby ──
-function finishGame() {
-  if (isHost) {
-    // Tally scores from results
-    const scoreMap = {};
-    hostResults.forEach(r => {
-      if (r.result && r.result.score !== undefined) {
-        scoreMap[r.playerId] = (scoreMap[r.playerId] || 0) + r.result.score;
-      }
-    });
-    if (Object.keys(scoreMap).length > 0) {
-      send({ type: 'update_scores', scores: scoreMap });
-    }
-    hostResults = [];
-    send({ type: 'back_to_lobby' });
-    goScreen('hostLobby');
-  } else {
-    hideAllGames();
-    goScreen('playerLobby');
-  }
+  }, delay + 2000));
 }
 
 // ── Init ──
-if (isCapacitorApp()) {
-  // Hide server URL input — embedded server auto-starts on host
-  document.getElementById('serverUrl').style.display = 'none';
-  document.getElementById('serverHint').textContent = 'Host starts a server on your phone 📱';
-}
-connect();
+goScreen('home');
 
-// Check for room code in URL
+// URL param — auto-join
 const params = new URLSearchParams(location.search);
-const urlRoom = params.get('room');
-if (urlRoom) {
-  document.getElementById('roomInput').value = urlRoom;
+const room = params.get('room');
+if (room) {
+  document.getElementById('joinRoomCode').value = room;
   showJoin();
 }
 </script>
