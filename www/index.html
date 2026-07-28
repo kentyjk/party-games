@@ -39,7 +39,8 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 .game-area{position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f1a;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center}
 .game-area.active{display:flex}
 .game-hud{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:space-between;padding:0 16px;font-size:.8em;color:#666;z-index:10}
-.game-close{position:absolute;top:10px;right:14px;z-index:20;background:none;border:none;color:#fff;font-size:1.5em;cursor:pointer}
+.game-close{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(15,15,26,0.95);border:none;border-top:1px solid #333;color:#aaa;font-size:1.1em;padding:16px;cursor:pointer;text-align:center;font-weight:600;letter-spacing:1px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.game-close:active{background:rgba(30,30,50,0.95);color:#fff}
 .round-result{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:2em;font-weight:900;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s}
 .round-result.show{opacity:1}
 .round-result.correct{color:#2ecc71}
@@ -145,7 +146,7 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 
 <!-- GAME OVERLAYS (shared single + multi) -->
 <div id="gamePatternLock" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="plRound">R1</span><span id="plScore">0</span></div>
   <div class="round-result" id="plResult"></div>
   <div class="pl-grid" id="plGrid"></div>
@@ -153,13 +154,13 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 </div>
 
 <div id="gameCatchDrop" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="cdRound">R1</span><span id="cdScore">0</span><span>Miss:<span id="cdMiss">0</span>/3</span></div>
   <div class="drop-area" id="cdDropArea"></div>
 </div>
 
 <div id="gameWhackColor" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="wcRound">R1</span><span id="wcScore">0</span></div>
   <div class="round-result" id="wcResult"></div>
   <h2 id="wcTarget" style="margin-bottom:8px"></h2>
@@ -167,7 +168,7 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 </div>
 
 <div id="gameDoubleTap" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="dtRound">R1</span><span id="dtScore">0</span></div>
   <div class="dt-area">
     <div class="dt-side dt-left" id="dtLeft">👁️<br><span style="font-size:.5em">Tap on sight</span></div>
@@ -176,7 +177,7 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 </div>
 
 <div id="gameFlashCount" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="fcRound">R1</span><span id="fcScore">0</span></div>
   <div class="fc-screen" id="fcFlash"></div>
   <p style="margin-top:12px;color:#666" id="fcStatus">Get ready...</p>
@@ -184,7 +185,7 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 </div>
 
 <div id="gameTypingUnderFire" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="tfRound">R1</span><span id="tfScore">0</span></div>
   <div class="tf-area">
     <div class="tf-target" id="tfTarget"></div>
@@ -194,7 +195,7 @@ h2{font-size:1.2em;color:#aaa;margin-bottom:8px}
 </div>
 
 <div id="gameLastToTap" class="game-area">
-  <button class="game-close" onclick="quitGame()">✕</button>
+  <button class="game-close" onclick="quitGame()">← Back to Menu</button>
   <div class="game-hud"><span id="ltRound">R1</span><span id="ltScore">0</span></div>
   <div class="lt-area" id="ltScreen">
     <div style="font-size:2.5em" id="ltStatus">🔴 WAIT...</div>
@@ -667,7 +668,7 @@ function startTF() {
   const inp = document.getElementById('tfInput'); inp.focus();
 
   let shaker;
-  if (navigator.vibrate) shaker = setInterval(() => navigator.vibrate([30, 50, 30]), 800 + Math.random() * 1200);
+  shaker = setInterval(() => vibrate([30, 50, 30]), 800 + Math.random() * 1200);
   const start = Date.now();
 
   inp.oninput = function() {
@@ -731,6 +732,37 @@ function startLT() {
 
 // ── Init ──
 goScreen('home');
+
+// Android back button → quit game instead of minimizing
+if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+  try {
+    Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+      const activeGame = document.querySelector('.game-area.active');
+      if (activeGame) {
+        quitGame();
+      } else if (document.getElementById('hostLobby').classList.contains('active') ||
+                 document.getElementById('playerLobby').classList.contains('active')) {
+        mpLeave();
+      } else if (document.getElementById('hostScreen').classList.contains('active') ||
+                 document.getElementById('joinScreen').classList.contains('active')) {
+        goScreen('home');
+      } else {
+        // On home screen, let the app minimize
+        Capacitor.Plugins.App.exitApp();
+      }
+    });
+  } catch(e) {}
+}
+
+// Vibration helper — works in browser + Capacitor
+function vibrate(pattern) {
+  if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+    try { Capacitor.Plugins.Haptics.vibrate({ duration: 50 }); return; } catch(e) {}
+  }
+  if (navigator.vibrate) {
+    try { navigator.vibrate(pattern); } catch(e) {}
+  }
+}
 
 // URL param — auto-join
 const params = new URLSearchParams(location.search);
