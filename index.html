@@ -409,6 +409,8 @@ function startGame(id) {
 
 function quitGame() {
   hideAllGames();
+  // Clear any lingering vibration timers
+  if (wcAutoTimer) { clearTimeout(wcAutoTimer); wcAutoTimer = null; }
   if (mode === 'solo') {
     const g = gameState.game;
     if (g && gameState.score > (highScores[g] || 0)) {
@@ -489,7 +491,8 @@ function plTap(i) {
   if (plInput.length === plPattern.length) {
     const ok = plInput.every((v, j) => v === plPattern[j]);
     showResult('plResult', ok);
-    if (ok) { addScore(plPattern.length * 10); document.getElementById('plScore').textContent = 'Score: ' + gameState.score; }
+    if (ok) { addScore(plPattern.length * 10); document.getElementById('plScore').textContent = 'Score: ' + gameState.score; vibrate([40, 60, 40]); }
+    else { vibrate([20, 30, 20]); }
     document.getElementById('plStatus').textContent = ok ? '✅' : '❌';
     setTimeout(() => { gameState.round++; startPL(); }, 1200);
   }
@@ -522,7 +525,7 @@ function cdSpawn() {
   b.style.boxShadow = '0 0 20px ' + b.style.background;
   b.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
-    addScore(10);
+    addScore(10); vibrate([20]);
     document.getElementById('cdScore').textContent = 'Score: ' + gameState.score;
     b.remove();
   });
@@ -540,8 +543,10 @@ function cdSpawn() {
 // WHACK-A-COLOR
 // ══════════════════════════════════════════
 let wcTargetColor = '';
+let wcAutoTimer = null;
 
 function startWC() {
+  if (wcAutoTimer) clearTimeout(wcAutoTimer);
   document.getElementById('gameWhackColor').classList.add('active');
   document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
   document.getElementById('wcRound').textContent = 'R' + gameState.round;
@@ -550,27 +555,33 @@ function startWC() {
   const names = ['RED','BLUE','GREEN','YELLOW','ORANGE','PURPLE'];
   const pick = Math.floor(Math.random() * colors.length);
   wcTargetColor = colors[pick];
-  document.getElementById('wcTarget').innerHTML = `Tap <span style="color:${wcTargetColor}">${names[pick]}</span>`;
+  // Show word in white so it's not confused with button colors
+  document.getElementById('wcTarget').innerHTML = `Tap <b>${names[pick]}</b>`;
 
   const grid = document.getElementById('wcGrid');
   grid.innerHTML = '';
+  let answered = false;
   [...colors].sort(() => Math.random() - 0.5).forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'wc-btn'; btn.style.background = c;
     btn.addEventListener('pointerdown', () => {
+      if (answered) return;
       if (c === wcTargetColor) {
+        answered = true; clearTimeout(wcAutoTimer);
         addScore(10); document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
         btn.classList.add('correct'); showResult('wcResult', true);
-        setTimeout(() => { gameState.round++; startWC(); }, 300);
+        vibrate([40]);
+        setTimeout(() => { gameState.round++; startWC(); }, 400);
       } else {
         btn.classList.add('wrong'); addScore(-5);
         document.getElementById('wcScore').textContent = 'Score: ' + gameState.score;
+        vibrate([15, 30, 15]);
         setTimeout(() => btn.classList.remove('wrong'), 300);
       }
     });
     grid.appendChild(btn);
   });
-  gameTimers.push(setTimeout(() => { gameState.round++; startWC(); }, 3500));
+  wcAutoTimer = setTimeout(() => { gameState.round++; startWC(); }, 4000);
 }
 
 // ══════════════════════════════════════════
@@ -593,7 +604,7 @@ function startDT() {
     active = true; const st = Date.now();
     left.onpointerdown = () => {
       if (!active) return;
-      addScore(Math.max(0, 50 - (Date.now() - st)));
+      addScore(Math.max(0, 50 - (Date.now() - st))); vibrate([20]);
       document.getElementById('dtScore').textContent = 'Score: ' + gameState.score;
       left.style.background = '#1a1a3e'; left.innerHTML = '👁️<br>✅'; active = false;
     };
@@ -606,7 +617,7 @@ function startDT() {
     active = true; const st = Date.now();
     right.onpointerdown = () => {
       if (!active) return;
-      addScore(Math.max(0, 50 - (Date.now() - st)));
+      addScore(Math.max(0, 50 - (Date.now() - st))); vibrate([20]);
       document.getElementById('dtScore').textContent = 'Score: ' + gameState.score;
       right.style.background = '#1e1a2e'; right.innerHTML = '🔊<br>✅'; active = false;
     };
@@ -642,7 +653,8 @@ function startFC() {
         inp.style.display = 'block'; inp.focus();
         inp.onchange = function() {
           const g = parseInt(this.value);
-          if (g === count) { addScore(count * 15); document.getElementById('fcScore').textContent = 'Score: ' + gameState.score; }
+          if (g === count) { addScore(count * 15); vibrate([40, 60, 40]); document.getElementById('fcScore').textContent = 'Score: ' + gameState.score; }
+          else { vibrate([20, 30, 20]); }
           document.getElementById('fcStatus').textContent = (g === count ? '✅ ' : '❌ It was ') + count + ' flashes';
           this.style.display = 'none';
           setTimeout(() => { gameState.round++; startFC(); }, 1200);
@@ -667,15 +679,18 @@ function startTF() {
   document.getElementById('tfTarget').textContent = s;
   const inp = document.getElementById('tfInput'); inp.focus();
 
+  // Single vibration burst at start, then a few during typing
   let shaker;
-  shaker = setInterval(() => vibrate([30, 50, 30]), 800 + Math.random() * 1200);
+  vibrate([30]);
+  shaker = setInterval(() => vibrate([15, 30, 15]), 2500 + Math.random() * 2000);
   const start = Date.now();
 
   inp.oninput = function() {
     if (this.value.trim().toLowerCase() === s) {
-      if (shaker) clearInterval(shaker);
+      clearInterval(shaker);
       const pts = Math.max(10, Math.floor(200 / ((Date.now() - start) / 1000)));
       addScore(pts); document.getElementById('tfScore').textContent = 'Score: ' + gameState.score;
+      vibrate([40, 60, 40]);
       document.getElementById('tfShake').textContent = '✅ ' + ((Date.now() - start) / 1000).toFixed(1) + 's!';
       setTimeout(() => { gameState.round++; startTF(); }, 1500);
     }
@@ -702,13 +717,14 @@ function startLT() {
     const now = Date.now();
     if (now < goTime) {
       resolved = true;
+      vibrate([30, 40, 30, 40, 30]);
       document.getElementById('ltStatus').textContent = '❌ Too early!';
       screen.style.background = '#4a0000';
       setTimeout(quitGame, 1500);
     } else {
       resolved = true;
       const rt = now - goTime;
-      addScore(Math.max(0, 100 - rt));
+      addScore(Math.max(0, 100 - rt)); vibrate([50]);
       document.getElementById('ltScore').textContent = 'Score: ' + gameState.score;
       document.getElementById('ltStatus').textContent = '✅ ' + rt + 'ms';
       screen.style.background = '#004a00';
