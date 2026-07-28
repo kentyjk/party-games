@@ -203,7 +203,9 @@ let scores = {};
 let capacitorServer = null; // { ip, port } from embedded server
 
 // ── Capacitor detection ──
-const isCapacitor = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+function isCapacitorApp() {
+  return typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+}
 
 // ── WebSocket ──
 function connect() {
@@ -240,8 +242,12 @@ function goScreen(id) {
 // ── Create Room ──
 async function createRoom() {
   // If running in Capacitor APK, start embedded server
-  if (isCapacitor && !capacitorServer) {
+  if (isCapacitorApp() && !capacitorServer) {
     try {
+      if (!Capacitor.Plugins || !Capacitor.Plugins.PartyGames) {
+        alert('Plugin not ready. Please restart the app.');
+        return;
+      }
       const result = await Capacitor.Plugins.PartyGames.startServer();
       capacitorServer = { ip: result.ip, port: result.port };
       document.getElementById('serverUrl').value = result.ip + ':' + result.port;
@@ -875,7 +881,7 @@ function finishGame() {
 }
 
 // ── Init ──
-if (isCapacitor) {
+if (isCapacitorApp()) {
   // Hide server URL input — embedded server auto-starts on host
   document.getElementById('serverUrl').style.display = 'none';
   document.getElementById('serverHint').textContent = 'Host starts a server on your phone 📱';
