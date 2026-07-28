@@ -87,7 +87,7 @@ h2{font-size:1.4em;margin-bottom:12px;color:#aaa}
   <input class="input" id="serverUrl" type="text" placeholder="Server URL (e.g. 192.168.1.5:3456)" style="margin-bottom:16px">
   <button class="btn primary large full" onclick="createRoom()">🎮 Host a Party</button>
   <button class="btn large full" onclick="showJoin()">🔗 Join a Party</button>
-  <p style="color:#555;font-size:.7em;margin-top:16px">Run <code>node server.js</code> on a computer first</p>
+  <p id="serverHint" style="color:#555;font-size:.7em;margin-top:16px">Run <code>node server.js</code> on a computer first</p>
 </div>
 
 <!-- JOIN SCREEN -->
@@ -200,10 +200,20 @@ let isHost = false;
 let playerName = '';
 let gameState = {};
 let scores = {};
+let capacitorServer = null; // { ip, port } from embedded server
+
+// ── Capacitor detection ──
+const isCapacitor = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
 
 // ── WebSocket ──
 function connect() {
-  const serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
+  let serverUrl;
+  if (capacitorServer) {
+    // Using embedded server — always localhost
+    serverUrl = 'localhost:' + capacitorServer.port;
+  } else {
+    serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
+  }
   const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
   ws = new WebSocket(proto + serverUrl);
 
@@ -228,7 +238,18 @@ function goScreen(id) {
 }
 
 // ── Create Room ──
-function createRoom() {
+async function createRoom() {
+  // If running in Capacitor APK, start embedded server
+  if (isCapacitor && !capacitorServer) {
+    try {
+      const result = await Capacitor.Plugins.PartyGames.startServer();
+      capacitorServer = { ip: result.ip, port: result.port };
+      document.getElementById('serverUrl').value = result.ip + ':' + result.port;
+    } catch (e) {
+      alert('Failed to start server: ' + e.message);
+      return;
+    }
+  }
   playerName = 'Host';
   send({ type: 'create_room', name: playerName, avatar: '🦊' });
 }
@@ -352,8 +373,13 @@ function handle(msg) {
 
 // ── QR Code ──
 function generateQR(code) {
-  const serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
-  const url = `http://${serverUrl}?room=${code}`;
+  let url;
+  if (capacitorServer) {
+    url = `http://${capacitorServer.ip}:${capacitorServer.port}?room=${code}`;
+  } else {
+    const serverUrl = document.getElementById('serverUrl').value.trim() || location.host;
+    url = `http://${serverUrl}?room=${code}`;
+  }
   const box = document.getElementById('qrBox');
   box.innerHTML = '';
   const img = document.createElement('img');
@@ -849,6 +875,11 @@ function finishGame() {
 }
 
 // ── Init ──
+if (isCapacitor) {
+  // Hide server URL input — embedded server auto-starts on host
+  document.getElementById('serverUrl').style.display = 'none';
+  document.getElementById('serverHint').textContent = 'Host starts a server on your phone 📱';
+}
 connect();
 
 // Check for room code in URL
